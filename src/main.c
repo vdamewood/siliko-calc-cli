@@ -82,41 +82,46 @@ int main(int argc, char *argv[])
 
 		SilikoSyntaxTreeNode *tree = SilikoParseInfix(
 			SilikoStringSourceNew(expression));
-		struct SilikoValue value = SilikoSyntaxTreeEvaluate(tree, caller);
+		SilikoValue *result = SilikoSyntaxTreeEvaluate(tree, caller);
 		SilikoSyntaxTreeDelete(tree);
 
-		switch (value.Status)
+		switch (SilikoValueGetStatus(result))
 		{
-		case (SILIKO_VAL_INTEGER):
-			printf("%lli\n", value.Integer);
+		case SilikoValueInteger:
+			printf("%lli\n", SilikoValueToInteger(result));
 			break;
-		case (SILIKO_VAL_FLOAT):
-			printf("%f\n", value.Float);
+		case SilikoValueReal:
+			printf("%f\n", SilikoValueToReal(result));
 			break;
-		case(SILIKO_VAL_MEMORY_ERR):
-			puts("Out of memory");
-			break;
-		case SILIKO_VAL_SYNTAX_ERR:
-			puts("Syntax error.");
-			break;
-		case SILIKO_VAL_ZERO_DIV_ERR:
-			puts("Division by zero");
-			break;
-		case SILIKO_VAL_BAD_FUNCTION:
-			puts("Function not found");
-			break;
-		case SILIKO_VAL_BAD_ARGUMENTS:
-			puts("Bad argument count");
-			break;
-		case SILIKO_VAL_DOMAIN_ERR:
-			puts("Domain error");
-			break;
-		case SILIKO_VAL_RANGE_ERR:
-			puts("Range error");
-			break;
-		default:
-			puts("Unexpected error");
+		case SilikoValueError:
+			switch(SilikoValueToError(result))
+		{
+			case(SilikoErrorMemory):
+				puts("Out of memory");
+				break;
+			case SilikoErrorSyntax:
+				puts("Syntax error.");
+				break;
+			case SilikoErrorZeroDivision:
+				puts("Division by zero");
+				break;
+			case SilikoErrorFunctionName:
+				puts("Function not found");
+				break;
+			case SilikoErrorFunctionArguments:
+				puts("Bad argument count");
+				break;
+			case SilikoErrorDomain:
+				puts("Domain error");
+				break;
+			case SilikoErrorRange:
+				puts("Range error");
+				break;
+			default:
+				puts("Unexpected error");
+			}
 		}
+		SilikoValueDelete(result);
 	}
 
 	SilikoFunctionCallerDelete(caller);
